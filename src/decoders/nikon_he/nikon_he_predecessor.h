@@ -114,11 +114,12 @@ private:
 // the reset fires whenever the precinct header's Bp marks the LL band:
 //   HE FF:  Bp == 5
 //   HE DX:  Bp == 4 && Br <= 7 (DX puts LL as low-Br Bp=4)
-//   HE*:    Bp == 1 || Bp == 2 || Bp == 3
+//   HE*:    Bp == 1 || Bp == 2 || Bp == 3, or Bp == 4 && Br <= 15
+//           for the higher-Bp HE* overlap regime seen in Z8 samples.
 inline bool should_reset_gcli(int precinct_index, int Bp, int Br) {
     if (precinct_index != 16) return false;
     if (Bp == 5) return true;                       // HE FF LL
-    if (Bp == 4 && Br <= 7) return true;            // HE DX LL
+    if (Bp == 4 && Br <= 15) return true;           // HE DX / HE* LL
     if (Bp == 1 || Bp == 2 || Bp == 3) return true; // HE* LL
     return false;
 }
