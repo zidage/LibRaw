@@ -2,18 +2,26 @@ LibRaw 0.23 (in development; Changelog relative to 0.22)
 
  == Raw format support ==
 
-  * Nikon High-Efficiency (HE) RAW format support for Z 9, Z 8, Z f
-    and Z 6 III. Routed via the existing tiff.cpp JPEG-XS-SOC detection
-    (FF 10 FF 50) at strip_offset for these models; implementation
-    lives in src/decoders/nikon_he/ + src/decoders/nikon_he_decoder.cpp.
+  * Nikon High-Efficiency (HE and HE*) RAW format support for Z 9,
+    Z 8, Z f and Z 6 III. Routed via the existing tiff.cpp JPEG-XS-SOC
+    detection (FF 10 FF 50) at strip_offset for these models;
+    implementation lives in src/decoders/nikon_he/ +
+    src/decoders/nikon_he_decoder.cpp.
 
-    HE* (High-Efficiency Star) is detected and explicitly refused with
-    LIBRAW_EXCEPTION_UNSUPPORTED_FORMAT. The decoder's gtli table and
-    prec-16 reset rule already cover HE*'s per-precinct Bp regime
-    (Bp ∈ {1, 2, 3}); additional tile-orchestration work is needed
-    before HE* matches the production decoder byte-exact, so the
-    refusal stays until that lands. Camera-list strings updated to
-    "(HE* format not supported yet)".
+    HE uses per-precinct Bp ∈ {4, 5}; HE* uses Bp ∈ {1, 2, 3, 4}. The
+    decoder handles both via shared entropy/IDWT/bayer code plus the
+    per-(Bp,Br) gtli table. The table now covers all (Bp,Br) pairs
+    observed in HE/HE* samples, including the Bp=5 Br=17/18/19 rows
+    whose absence previously scrambled whole tiles of HE output.
+    Any (Bp,Br) pair missing from the explicit table is derived
+    downward from the nearest higher-Bp row at the same Br (GTLI
+    decreases by one per Bp level, clamped at zero) — exact for the
+    Bp=3/4/5 regime used by HE and HE*.
+
+    HE* decodes with residual tile-boundary artifacts (the 2-precinct
+    cross-tile ver_lift carry); the image interior is near-exact. A
+    follow-up byte-exactness pass for the HE* carry is tracked
+    separately.
 
 2025-12-25  Alex Tutubalin <lexa@lexa.ru>
 

@@ -62,6 +62,9 @@ const GtliRow kGtliTable[] = {
     {5,14,  {1,2,2,3,3,4, 2,3,4,4,4,4, 4, 2,3,4,4,4,5, 4,5, 5,5, 4, 4,5}},
     {5,15,  {1,2,2,3,3,4, 2,3,4,4,4,4, 4, 2,3,4,4,4,4, 4,5, 5,5, 4, 4,5}},
     {5,16,  {1,2,2,3,3,4, 2,3,4,4,4,4, 4, 2,3,4,4,4,4, 4,5, 4,5, 4, 4,5}},
+    {5,17,  {1,2,2,3,3,4, 2,3,4,4,4,4, 4, 2,3,3,4,4,4, 4,5, 4,5, 4, 4,5}},
+    {5,18,  {1,2,2,3,3,4, 2,3,3,4,4,4, 4, 2,3,3,4,4,4, 4,5, 4,5, 4, 4,5}},
+    {5,19,  {1,2,2,3,3,4, 2,3,3,4,4,4, 4, 2,3,3,4,4,4, 4,4, 4,5, 4, 4,5}},
     {5,20,  {1,1,2,3,3,4, 2,3,3,4,4,4, 4, 2,3,3,4,4,4, 4,4, 4,5, 4, 4,5}},
     {5,21,  {1,1,2,3,3,4, 2,3,3,4,4,4, 4, 2,3,3,4,4,4, 3,4, 4,5, 4, 4,5}},
     {5,22,  {1,1,2,3,3,3, 2,3,3,4,4,4, 4, 2,3,3,4,4,4, 3,4, 4,5, 4, 4,5}},
@@ -116,11 +119,44 @@ constexpr int kNumGtliRows = sizeof(kGtliTable) / sizeof(kGtliTable[0]);
 }  // namespace
 
 const uint8_t* lookup_gtli_table(int Bp, int Br) {
+    // 1. Exact (Bp, Br) match.
     for (int i = 0; i < kNumGtliRows; ++i) {
         if (kGtliTable[i].Bp == Bp && kGtliTable[i].Br == Br) {
             return kGtliTable[i].values;
         }
     }
+
+    // 2. Fallback: derive from a higher-Bp row at the same Br.
+    //
+    // GTLI decreases by exactly 1 per Bp level (one fewer bit of precision
+    // per lower Bp), clamped at 0. This "downward" derivation
+    // (subtract the Bp gap, clamp) is exact for the Bp=3/4/5 regime used by
+    // Nikon HE and HE* — verified against every overlapping row in the
+    // table. (Upward derivation — adding — is NOT safe: lower-Bp rows clamp
+    // at 0 and lose the pre-clamp level, so we only ever derive downward.)
+    //
+    // Pick the closest higher Bp available at this Br to keep the source
+    // row's clamping as far from the target as possible.
+    int best_src = -1;
+    int best_gap = 0;
+    for (int i = 0; i < kNumGtliRows; ++i) {
+        if (kGtliTable[i].Br != Br) continue;
+        int gap = kGtliTable[i].Bp - Bp;
+        if (gap <= 0) continue;
+        if (best_src < 0 || gap < best_gap) {
+            best_src = i;
+            best_gap = gap;
+        }
+    }
+    if (best_src >= 0) {
+        static uint8_t derived[kSubBandsPerPrecinct];
+        for (int s = 0; s < kSubBandsPerPrecinct; ++s) {
+            int v = kGtliTable[best_src].values[s] - best_gap;
+            derived[s] = (v < 0) ? 0 : static_cast<uint8_t>(v);
+        }
+        return derived;
+    }
+
     return nullptr;
 }
 
