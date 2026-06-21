@@ -154,7 +154,7 @@ TileDecodeResult decode_tile(
         PrecinctDecodeResult prec = decode_precinct(
             precinct_data[p], precinct_sizes[p], image_width,
             config, pred_state, predict_lut, bufA.data(), bufB.data());
-        if (!prec.success) break;
+        if (!prec.success) return result;
         result.precincts_decoded++;
 
         // 2. Pass A h1_l12 → h_out (LB-ordered layout).

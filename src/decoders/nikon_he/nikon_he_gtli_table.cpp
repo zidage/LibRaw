@@ -29,7 +29,6 @@ it under the terms of the one of two licenses as you choose:
 //   sb 24..25: pass B wavelet horizontals, final 2 (LB 7)
 
 #include "nikon_he_gtli_table.h"
-#include <cstring>
 
 namespace nikon_he {
 
@@ -54,6 +53,9 @@ const GtliRow kGtliTable[] = {
     {4, 5,  {0,1,2,2,3,3, 2,2,3,3,4,4, 4, 2,2,3,3,4,4, 3,4, 4,4, 4, 4,4}},
     {4, 6,  {0,1,2,2,3,3, 1,2,3,3,4,4, 4, 2,2,3,3,4,4, 3,4, 4,4, 4, 4,4}},
     {4, 7,  {0,1,2,2,3,3, 1,2,3,3,4,4, 4, 1,2,3,3,4,4, 3,4, 4,4, 4, 4,4}},
+    {4, 8,  {0,1,2,2,3,3, 1,2,3,3,3,4, 4, 1,2,3,3,4,4, 3,4, 4,4, 4, 4,4}},
+    {4, 9,  {0,1,2,2,3,3, 1,2,3,3,3,4, 4, 1,2,3,3,3,4, 3,4, 4,4, 4, 4,4}},
+    {4,10,  {0,1,1,2,3,3, 1,2,3,3,3,4, 4, 1,2,3,3,3,4, 3,4, 4,4, 4, 4,4}},
     {4,11,  {0,1,1,2,2,3, 1,2,3,3,3,4, 4, 1,2,3,3,3,4, 3,4, 4,4, 4, 4,4}},
     {4,12,  {0,1,1,2,2,3, 1,2,3,3,3,4, 3, 1,2,3,3,3,4, 3,4, 4,4, 3, 4,4}},
     // Bp=5 rows
@@ -79,12 +81,12 @@ const GtliRow kGtliTable[] = {
     {1,  7, {0,0,0,0,0,0, 0,0,0,0,1,1, 1, 0,0,0,0,1,1, 0,1, 1,1, 1, 1,1}},
     {1,  8, {0,0,0,0,0,0, 0,0,0,0,0,1, 1, 0,0,0,0,1,1, 0,1, 1,1, 1, 1,1}},
     {1, 11, {0,0,0,0,0,0, 0,0,0,0,0,1, 1, 0,0,0,0,0,1, 0,1, 1,1, 1, 1,1}},
-    {2,  0, {0,0,0,1,1,2, 0,1,1,2,2,2, 2, 0,1,1,2,2,2, 1,2, 2,2, 2, 2,2}},
-    {2,  1, {0,0,0,1,1,2, 0,1,1,2,2,2, 2, 0,0,1,1,2,2, 1,2, 2,2, 2, 2,2}},
-    {2,  3, {0,0,0,0,1,1, 0,1,1,2,2,2, 2, 0,0,1,1,2,2, 1,2, 2,2, 2, 2,2}},
-    {2,  4, {0,0,0,0,1,1, 0,0,1,1,2,2, 2, 0,0,1,1,2,2, 1,2, 2,2, 2, 2,2}},
-    {2,  7, {0,0,0,0,1,1, 0,0,1,1,2,2, 2, 0,0,1,1,1,2, 1,2, 2,2, 2, 2,2}},
-    {2,  8, {0,0,0,0,0,1, 0,0,1,1,2,2, 2, 0,0,1,1,1,2, 1,2, 2,2, 2, 2,2}},
+    {2,  0, {0,0,0,0,1,1, 0,1,1,2,2,2, 2, 0,1,1,2,2,2, 1,2, 2,2, 2, 2,2}},
+    {2,  1, {0,0,0,0,1,1, 0,1,1,2,2,2, 2, 0,1,1,1,2,2, 1,2, 2,2, 2, 2,2}},
+    {2,  3, {0,0,0,0,1,1, 0,1,1,1,2,2, 2, 0,1,1,1,2,2, 1,2, 2,2, 2, 2,2}},
+    {2,  4, {0,0,0,0,1,1, 0,0,1,1,2,2, 2, 0,1,1,1,2,2, 1,2, 2,2, 2, 2,2}},
+    {2,  7, {0,0,0,0,1,1, 0,0,1,1,2,2, 2, 0,0,1,1,2,2, 1,2, 2,2, 2, 2,2}},
+    {2,  8, {0,0,0,0,1,1, 0,0,1,1,1,2, 2, 0,0,1,1,2,2, 1,2, 2,2, 2, 2,2}},
     {2, 10, {0,0,0,0,1,1, 0,0,1,1,1,2, 2, 0,0,1,1,1,2, 1,2, 2,2, 2, 2,2}},
     {2, 11, {0,0,0,0,0,1, 0,0,1,1,1,2, 2, 0,0,1,1,1,2, 1,2, 2,2, 2, 2,2}},
     {2, 12, {0,0,0,0,0,1, 0,0,1,1,1,2, 1, 0,0,1,1,1,2, 1,2, 2,2, 1, 2,2}},
@@ -99,6 +101,8 @@ const GtliRow kGtliTable[] = {
     {2, 23, {0,0,0,0,0,0, 0,0,0,1,1,1, 1, 0,0,0,1,1,1, 0,1, 1,2, 1, 1,2}},
     {2, 24, {0,0,0,0,0,0, 0,0,0,1,1,1, 1, 0,0,0,1,1,1, 0,1, 1,1, 1, 1,2}},
     {3,  8, {0,0,1,1,2,2, 0,1,2,2,2,3, 3, 0,1,2,2,3,3, 2,3, 3,3, 3, 3,3}},
+    {3,  9, {0,0,1,1,2,2, 0,1,2,2,2,3, 3, 0,1,2,2,2,3, 2,3, 3,3, 3, 3,3}},
+    {3, 10, {0,0,0,1,2,2, 0,1,2,2,2,3, 3, 0,1,2,2,2,3, 2,3, 3,3, 3, 3,3}},
     {3, 11, {0,0,0,1,1,2, 0,1,2,2,2,3, 3, 0,1,2,2,2,3, 2,3, 3,3, 3, 3,3}},
     {3, 12, {0,0,0,1,1,2, 0,1,2,2,2,3, 2, 0,1,2,2,2,3, 2,3, 3,3, 2, 3,3}},
     {3, 13, {0,0,0,1,1,2, 0,1,2,2,2,3, 2, 0,1,2,2,2,3, 2,3, 3,3, 2, 2,3}},
@@ -130,10 +134,9 @@ const uint8_t* lookup_gtli_table(int Bp, int Br) {
     //
     // GTLI decreases by exactly 1 per Bp level (one fewer bit of precision
     // per lower Bp), clamped at 0. This "downward" derivation
-    // (subtract the Bp gap, clamp) is exact for the Bp=3/4/5 regime used by
-    // Nikon HE and HE* — verified against every overlapping row in the
-    // table. (Upward derivation — adding — is NOT safe: lower-Bp rows clamp
-    // at 0 and lose the pre-clamp level, so we only ever derive downward.)
+    // (subtract the Bp gap, clamp) is exact for the overlapping rows seen in
+    // Z8/Z9 HE and HE* samples, so it is preferred whenever a higher-Bp row
+    // exists.
     //
     // Pick the closest higher Bp available at this Br to keep the source
     // row's clamping as far from the target as possible.
@@ -153,6 +156,33 @@ const uint8_t* lookup_gtli_table(int Bp, int Br) {
         for (int s = 0; s < kSubBandsPerPrecinct; ++s) {
             int v = kGtliTable[best_src].values[s] - best_gap;
             derived[s] = (v < 0) ? 0 : static_cast<uint8_t>(v);
+        }
+        return derived;
+    }
+
+    // 3. Higher-Bp extrapolation: Z6_3 HE shows that Bp/Br regimes are
+    // selected dynamically by the encoder, not fixed by camera model or
+    // menu label. It uses Bp=6 and low-Br Bp=5 rows not present in the
+    // original Z8/Z9 table. With no higher-Bp row available, use the closest
+    // lower-Bp row at the same Br and add one GTLI level per Bp step. This is
+    // the inverse of the downward rule and is intentionally lower priority
+    // than exact/downward lookup because lower-Bp rows may have lost
+    // pre-clamp detail.
+    best_src = -1;
+    best_gap = 0;
+    for (int i = 0; i < kNumGtliRows; ++i) {
+        if (kGtliTable[i].Br != Br) continue;
+        int gap = Bp - kGtliTable[i].Bp;
+        if (gap <= 0) continue;
+        if (best_src < 0 || gap < best_gap) {
+            best_src = i;
+            best_gap = gap;
+        }
+    }
+    if (best_src >= 0) {
+        static uint8_t derived[kSubBandsPerPrecinct];
+        for (int s = 0; s < kSubBandsPerPrecinct; ++s) {
+            derived[s] = static_cast<uint8_t>(kGtliTable[best_src].values[s] + best_gap);
         }
         return derived;
     }

@@ -38,6 +38,43 @@ static inline uint32_t read_be(const uint8_t* p, int bytes) {
     return v;
 }
 
+static inline int ceil_div(int x, int d) {
+    return (x + d - 1) / d;
+}
+
+static int compute_lb_sig_bytes(int image_width, int lb) {
+    const int half_pass_width = image_width / 2;
+    const int ng_max = ceil_div(half_pass_width, 8);
+    const int ng_LL = half_pass_width / 4;
+    const int N4 = ceil_div(ng_max, 2);
+    const int N5 = ceil_div(N4, 2);
+    const int N_H5 = N4 - N5;
+
+    const int ng_5level[6] = {
+        ceil_div(N5, 4),
+        ceil_div(N_H5, 4),
+        ceil_div(ng_max, 8),
+        ceil_div(ng_max, 4),
+        ceil_div(ng_max, 2),
+        ng_max,
+    };
+
+    if (lb == 0 || lb == 1 || lb == 3) {
+        int sig_blocks = 0;
+        for (int i = 0; i < 6; ++i) {
+            sig_blocks += ceil_div(ng_5level[i], 8);
+        }
+        return ceil_div(sig_blocks, 8);
+    }
+
+    if (lb == 2 || lb == 6) {
+        return ceil_div(ceil_div(ng_LL, 8), 8);
+    }
+
+    const int passb_sig_blocks = 2 * ceil_div(ng_max, 8);
+    return ceil_div(passb_sig_blocks, 8);
+}
+
 bool parse_precinct_header(const uint8_t* data,
                            size_t data_size,
                            int image_width,
@@ -73,7 +110,7 @@ bool parse_precinct_header(const uint8_t* data,
     // 8 LB mini-headers + substreams, INTERLEAVED.
     // Each LB block is:
     //   7 bytes mini-header (1 + 20 + 20 + 15 = 56 bits)
-    //   f20 bytes sig substream
+    //   per-LB computed sig substream bytes
     //   f24 bytes gcli substream
     //   f28 bytes data substream
     //   f2c bytes sign substream
@@ -93,7 +130,8 @@ bool parse_precinct_header(const uint8_t* data,
         out.lb_data_bytes[lb] = static_cast<uint32_t>((val >> 35) & 0xFFFFF);
         out.lb_gcli_bytes[lb] = static_cast<uint32_t>((val >> 15) & 0xFFFFF);
         out.lb_sign_bytes[lb] = static_cast<uint32_t>( val        & 0x7FFF);
-        out.lb_sig_bytes [lb] = static_cast<uint32_t>(out.f20);
+        out.lb_sig_bytes [lb] = static_cast<uint32_t>(
+            compute_lb_sig_bytes(image_width, lb));
 
         cursor += 7;                                 // past mini-header
         out.lb_sig_offset[lb] = static_cast<uint32_t>(cursor);  // sig starts here

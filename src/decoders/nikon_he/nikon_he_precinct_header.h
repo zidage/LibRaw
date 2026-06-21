@@ -53,12 +53,12 @@ struct PrecinctSizes {
     // Dpb[0..15] = primary, Dpb[16..27] = secondary.
     uint8_t Dpb[kDpbCount];
 
-    // Derived: f20 = ceil(image_width / 256). Number of sig-substream
-    // bytes per LB when f20_sign=1; 0 when f20_sign=0.
+    // Derived: legacy maximum sig-substream byte count. Individual LBs may
+    // use fewer bytes; see lb_sig_bytes[].
     int f20;
 
     // Per-LB substream byte counts.
-    uint32_t lb_sig_bytes[kLineBlocksPerPrecinct];   // = f20
+    uint32_t lb_sig_bytes[kLineBlocksPerPrecinct];   // per-LB sig substream
     uint32_t lb_data_bytes[kLineBlocksPerPrecinct];  // f28: data substream
     uint32_t lb_gcli_bytes[kLineBlocksPerPrecinct];  // f24: GCLI+significance substreams
     uint32_t lb_sign_bytes[kLineBlocksPerPrecinct];  // f2c: sign substream
@@ -70,8 +70,9 @@ struct PrecinctSizes {
     uint32_t lb_sig_offset[kLineBlocksPerPrecinct];
 };
 
-// Derive f20 from the HALF-PASS width W = image_width / 2.
-// f20 = ceil(W / 256). For FF (W=4140) → 17; for DX (W=2704) → 11.
+// Derive the maximum sig-substream byte count from the HALF-PASS width.
+// This is retained for diagnostics and matches lift line blocks for widths
+// that do not land exactly on a per-LB significance boundary.
 inline int compute_f20(int half_pass_width) {
     return (half_pass_width + 255) / 256;
 }
@@ -81,7 +82,7 @@ inline int compute_f20(int half_pass_width) {
 // Parameters:
 //   data        — pointer to the start of the precinct data
 //   data_size   — size of the buffer (must be ≥ 68 bytes)
-//   image_width — full image width in pixels (used to derive f20)
+//   image_width - full image width in pixels (used for per-LB sig byte counts)
 //   out         — output PrecinctSizes structure (always written on success)
 //
 // Returns true on success, false if the buffer is too short.

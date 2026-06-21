@@ -24,8 +24,6 @@ it under the terms of the one of two licenses as you choose:
 #include "nikon_he_precinct_decode.h"
 #include "nikon_he_predict_lut.h"
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 
 namespace nikon_he {
 
@@ -92,11 +90,12 @@ HeDecodeResult decode_nikon_he_image(
         // Sentinel: total_size==0 means end-of-stream.
         if (sz == 0) break;
         // The full precinct occupies sz + 12 bytes; bound-check.
-        if (sz + 12 > remaining) break;
+        size_t full_size = static_cast<size_t>(sz) + 12;
+        if (full_size > remaining) break;
         prec_ptrs[p] = cursor;
-        prec_sizes[p] = sz;
-        cursor += sz + 12;
-        remaining -= sz + 12;
+        prec_sizes[p] = full_size;
+        cursor += full_size;
+        remaining -= full_size;
         n_walked++;
 
         // 6-byte alignment pad after every 16th file precinct (index 15,31,...)

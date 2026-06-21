@@ -31,9 +31,9 @@ it under the terms of the one of two licenses as you choose:
 // cross-band state is needed — but GCLI values are still saved for
 // consistency and potential use by the fully-insignificant flag logic.
 //
-// Precinct-16 reset: when precinct index == 16 and
-// (Bp == 5 || (Bp == 4 && Br ≤ 7)), all GCLI prediction state is
-// zeroed.
+// Precinct-16 reset: when precinct index == 16, all GCLI prediction state
+// is zeroed. This is a structural overlap position; the encoder may choose
+// different Bp/Br regimes for it.
 //
 
 
@@ -110,18 +110,15 @@ private:
 // Static helper: check if GCLI reset condition is met.
 // p is the 0-based precinct index within the tile (0..17).
 //
-// Prec 16 is structurally the LL precinct in both HE and HE* variants;
-// the reset fires whenever the precinct header's Bp marks the LL band:
-//   HE FF:  Bp == 5
-//   HE DX:  Bp == 4 && Br <= 7 (DX puts LL as low-Br Bp=4)
-//   HE*:    Bp == 1 || Bp == 2 || Bp == 3, or Bp == 4 && Br <= 15
-//           for the higher-Bp HE* overlap regime seen in Z8 samples.
+// Prec 16 is structurally the LL overlap precinct in HE/HE* variants.
+// The encoder may choose different Bp/Br regimes for the same structural
+// position (Z6_3 HE can use Bp==6 here), so the reset is tied to the
+// precinct position instead of a fixed Bp allowlist. This keeps the shared
+// overlap precinct consistent when it is reused as the next tile's p0.
 inline bool should_reset_gcli(int precinct_index, int Bp, int Br) {
-    if (precinct_index != 16) return false;
-    if (Bp == 5) return true;                       // HE FF LL
-    if (Bp == 4 && Br <= 15) return true;           // HE DX / HE* LL
-    if (Bp == 1 || Bp == 2 || Bp == 3) return true; // HE* LL
-    return false;
+    (void)Bp;
+    (void)Br;
+    return precinct_index == 16;
 }
 
 }  // namespace nikon_he
