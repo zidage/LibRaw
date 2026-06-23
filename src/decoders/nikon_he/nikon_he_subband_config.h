@@ -32,9 +32,9 @@ it under the terms of the one of two licenses as you choose:
 //   LB 6 (memcpy):  sb 16         → buffer B
 //   LB 7 (lift):    sb 17-25      → buffer B  (9 sub-bands)
 //
-// The LayoutInfo struct is shared across all 26 SubbandConfig entries
-// (they all point to the same instance), providing computed region sizes,
-// HL offset tables, and ng counts for the entire layout.
+// The LayoutInfo struct is shared across all 26 SubbandConfig entries for one
+// decode, providing computed region sizes, HL offset tables, and ng counts for
+// the entire layout.
 
 #ifndef LIBRAW_NIKON_HE_SUBBAND_CONFIG_H
 #define LIBRAW_NIKON_HE_SUBBAND_CONFIG_H
@@ -89,12 +89,11 @@ struct SubbandConfig {
 // half_pass_W = image_width / 2  (full-res Z9: 8256 → 4128).
 //
 // Populates `out` (26 entries) with ng, x24, priority, buffer_idx,
-// and sets all layout_info pointers to a static LayoutInfo.
+// and sets all layout_info pointers to `layout_info`.
 //
-// The returned LayoutInfo is valid for the lifetime of the program;
-// subsequent calls overwrite it (not thread-safe across different widths).
+// The caller owns `layout_info`; it must outlive every use of `out`.
 //
-void compute_subband_layout(int half_pass_W, SubbandConfig out[26]);
+void compute_subband_layout(int half_pass_W, SubbandConfig out[26], LayoutInfo& layout_info);
 
 }  // namespace nikon_he
 

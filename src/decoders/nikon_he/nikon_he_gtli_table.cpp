@@ -120,14 +120,52 @@ const GtliRow kGtliTable[] = {
 
 constexpr int kNumGtliRows = sizeof(kGtliTable) / sizeof(kGtliTable[0]);
 
+const GtliRow* find_exact_row(int Bp, int Br) {
+    for (int i = 0; i < kNumGtliRows; ++i) {
+        if (kGtliTable[i].Bp == Bp && kGtliTable[i].Br == Br) {
+            return &kGtliTable[i];
+        }
+    }
+    return nullptr;
+}
+
+const GtliRow* find_closest_higher_bp_row(int Bp, int Br, int& best_gap) {
+    const GtliRow* best_src = nullptr;
+    best_gap = 0;
+    for (int i = 0; i < kNumGtliRows; ++i) {
+        if (kGtliTable[i].Br != Br) continue;
+        int gap = kGtliTable[i].Bp - Bp;
+        if (gap <= 0) continue;
+        if (!best_src || gap < best_gap) {
+            best_src = &kGtliTable[i];
+            best_gap = gap;
+        }
+    }
+    return best_src;
+}
+
+const GtliRow* find_closest_lower_bp_row(int Bp, int Br, int& best_gap) {
+    const GtliRow* best_src = nullptr;
+    best_gap = 0;
+    for (int i = 0; i < kNumGtliRows; ++i) {
+        if (kGtliTable[i].Br != Br) continue;
+        int gap = Bp - kGtliTable[i].Bp;
+        if (gap <= 0) continue;
+        if (!best_src || gap < best_gap) {
+            best_src = &kGtliTable[i];
+            best_gap = gap;
+        }
+    }
+    return best_src;
+}
+
 }  // namespace
 
 const uint8_t* lookup_gtli_table(int Bp, int Br) {
     // 1. Exact (Bp, Br) match.
-    for (int i = 0; i < kNumGtliRows; ++i) {
-        if (kGtliTable[i].Bp == Bp && kGtliTable[i].Br == Br) {
-            return kGtliTable[i].values;
-        }
+    const GtliRow* exact = find_exact_row(Bp, Br);
+    if (exact) {
+        return exact->values;
     }
 
     // 2. Fallback: derive from a higher-Bp row at the same Br.
@@ -140,21 +178,12 @@ const uint8_t* lookup_gtli_table(int Bp, int Br) {
     //
     // Pick the closest higher Bp available at this Br to keep the source
     // row's clamping as far from the target as possible.
-    int best_src = -1;
     int best_gap = 0;
-    for (int i = 0; i < kNumGtliRows; ++i) {
-        if (kGtliTable[i].Br != Br) continue;
-        int gap = kGtliTable[i].Bp - Bp;
-        if (gap <= 0) continue;
-        if (best_src < 0 || gap < best_gap) {
-            best_src = i;
-            best_gap = gap;
-        }
-    }
-    if (best_src >= 0) {
-        static uint8_t derived[kSubBandsPerPrecinct];
+    const GtliRow* best_src = find_closest_higher_bp_row(Bp, Br, best_gap);
+    if (best_src) {
+        thread_local uint8_t derived[kSubBandsPerPrecinct];
         for (int s = 0; s < kSubBandsPerPrecinct; ++s) {
-            int v = kGtliTable[best_src].values[s] - best_gap;
+            int v = best_src->values[s] - best_gap;
             derived[s] = (v < 0) ? 0 : static_cast<uint8_t>(v);
         }
         return derived;
@@ -168,26 +197,43 @@ const uint8_t* lookup_gtli_table(int Bp, int Br) {
     // the inverse of the downward rule and is intentionally lower priority
     // than exact/downward lookup because lower-Bp rows may have lost
     // pre-clamp detail.
-    best_src = -1;
     best_gap = 0;
-    for (int i = 0; i < kNumGtliRows; ++i) {
-        if (kGtliTable[i].Br != Br) continue;
-        int gap = Bp - kGtliTable[i].Bp;
-        if (gap <= 0) continue;
-        if (best_src < 0 || gap < best_gap) {
-            best_src = i;
-            best_gap = gap;
-        }
-    }
-    if (best_src >= 0) {
-        static uint8_t derived[kSubBandsPerPrecinct];
+    best_src = find_closest_lower_bp_row(Bp, Br, best_gap);
+    if (best_src) {
+        thread_local uint8_t derived[kSubBandsPerPrecinct];
         for (int s = 0; s < kSubBandsPerPrecinct; ++s) {
-            derived[s] = static_cast<uint8_t>(kGtliTable[best_src].values[s] + best_gap);
+            derived[s] = static_cast<uint8_t>(best_src->values[s] + best_gap);
         }
         return derived;
     }
 
     return nullptr;
+}
+
+uint8_t lookup_gtli_for_sub_band(int Bp, int Br, int sub_band_index) {
+    if (sub_band_index < 0 || sub_band_index >= kSubBandsPerPrecinct) {
+        return 0xFF;
+    }
+
+    const GtliRow* exact = find_exact_row(Bp, Br);
+    if (exact) {
+        return exact->values[sub_band_index];
+    }
+
+    int best_gap = 0;
+    const GtliRow* best_src = find_closest_higher_bp_row(Bp, Br, best_gap);
+    if (best_src) {
+        int v = best_src->values[sub_band_index] - best_gap;
+        return (v < 0) ? 0 : static_cast<uint8_t>(v);
+    }
+
+    best_gap = 0;
+    best_src = find_closest_lower_bp_row(Bp, Br, best_gap);
+    if (best_src) {
+        return static_cast<uint8_t>(best_src->values[sub_band_index] + best_gap);
+    }
+
+    return 0xFF;
 }
 
 }  // namespace nikon_he

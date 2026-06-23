@@ -45,11 +45,7 @@ const uint8_t* lookup_gtli_table(int Bp, int Br);
 
 // Direct indexed lookup: returns the GTLI for a specific sub-band.
 // Returns 0xFF if the (Bp, Br) combination is unknown.
-inline uint8_t lookup_gtli_for_sub_band(int Bp, int Br, int sub_band_index) {
-    const uint8_t* table = lookup_gtli_table(Bp, Br);
-    if (!table) return 0xFF;
-    return table[sub_band_index];
-}
+uint8_t lookup_gtli_for_sub_band(int Bp, int Br, int sub_band_index);
 
 }  // namespace nikon_he
 

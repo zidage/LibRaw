@@ -50,8 +50,9 @@ HeDecodeResult decode_nikon_he_image(
 
     // 1. Compute sub-band layout for half-width.
     int half_pass_W = image_width / 2;
+    LayoutInfo layout_info;
     SubbandConfig config[26];
-    compute_subband_layout(half_pass_W, config);
+    compute_subband_layout(half_pass_W, config, layout_info);
     const LayoutInfo* li = config[0].layout_info;
 
     // 2. Build prediction LUT.
