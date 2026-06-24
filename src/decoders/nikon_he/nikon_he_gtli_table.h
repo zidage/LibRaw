@@ -1,6 +1,8 @@
 /* -*- C++ -*-
  * File: nikon_he_gtli_table.h
  * Copyright (C) 2026 Dmitri Sotnikov
+ * Copyright (C) 2026 Yurun Zi (code generated
+ *   with assistance from GLM 5.2 and GPT 5.5)
  *
    Nikon HE GTLI lookup table interface
 

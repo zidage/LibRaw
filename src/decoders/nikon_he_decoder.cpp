@@ -1,6 +1,8 @@
 /* -*- C++ -*-
  * File: nikon_he_decoder.cpp
  * Copyright (C) 2026 Dmitri Sotnikov
+ * Copyright (C) 2026 Yurun Zi (code generated
+ *   with assistance from GLM 5.2 and GPT 5.5)
  *
    Nikon Z9 High-Efficiency RAW decoder LibRaw integration glue
 

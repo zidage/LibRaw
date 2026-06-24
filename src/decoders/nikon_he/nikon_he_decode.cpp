@@ -1,6 +1,8 @@
 /* -*- C++ -*-
  * File: nikon_he_decode.cpp
  * Copyright (C) 2026 Dmitri Sotnikov
+ * Copyright (C) 2026 Yurun Zi (code generated
+ *   with assistance from GLM 5.2 and GPT 5.5)
  *
    Nikon HE image-level decoder implementation
 
