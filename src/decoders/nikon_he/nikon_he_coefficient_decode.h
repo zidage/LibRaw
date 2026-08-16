@@ -70,6 +70,17 @@ void apply_sign_bits(
     int32_t* coefficients,
     int coefficient_count);
 
+// Unpack magnitudes, apply sign bits, and dequantize in one pass.
+// Writes `num_groups * 4` coefficients to `coefficients_out`.
+// Returns true when every reconstructed coefficient is zero.
+bool unpack_sign_and_dequantize(
+    BitReader& data_reader,
+    BitReader& sign_reader,
+    const uint8_t* gcli_values,
+    int gtli,
+    int num_groups,
+    int32_t* coefficients_out);
+
 }  // namespace nikon_he
 
 #endif  // LIBRAW_NIKON_HE_COEFFICIENT_DECODE_H

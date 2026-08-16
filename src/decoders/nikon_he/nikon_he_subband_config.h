@@ -64,6 +64,11 @@ struct LayoutInfo {
     // passB[0..1]: cumsum for pass B lift LBs.
     int passA_hl_offset[6];
     int passB_hl_offset[2];
+
+    // Per-LB significance-substream byte counts. Constant for a given
+    // image width. Cached so precinct-header parse does not rebuild the
+    // 5-level ng table eight times per precinct.
+    int lb_sig_bytes[8];
 };
 
 // One entry per sub-band (0..25).

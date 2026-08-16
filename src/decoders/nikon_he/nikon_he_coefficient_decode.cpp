@@ -20,9 +20,16 @@ it under the terms of the one of two licenses as you choose:
 // See nikon_he_coefficient_decode.h for the public API.
 
 #include "nikon_he_coefficient_decode.h"
-#include <cstring>
+#include "nikon_he_dequantize.h"
 
 namespace nikon_he {
+
+static inline void unpack_one_nibble(int32_t m[4], uint32_t nibble) {
+    m[0] = (m[0] << 1) | static_cast<int32_t>((nibble >> 3) & 1u);
+    m[1] = (m[1] << 1) | static_cast<int32_t>((nibble >> 2) & 1u);
+    m[2] = (m[2] << 1) | static_cast<int32_t>((nibble >> 1) & 1u);
+    m[3] = (m[3] << 1) | static_cast<int32_t>( nibble       & 1u);
+}
 
 void unpack_coefficient_magnitudes(
     BitReader& data_reader,
@@ -31,34 +38,32 @@ void unpack_coefficient_magnitudes(
     int num_groups,
     int32_t* coefficients_out) {
 
-    // Zero the full output array.
-    int total_coefficients = num_groups * 4;
-    std::memset(coefficients_out, 0, static_cast<size_t>(total_coefficients) * sizeof(int32_t));
-
     for (int g = 0; g < num_groups; ++g) {
-        int num_bitplanes = static_cast<int>(gcli_values[g]) - gtli;
+        const int num_bitplanes = static_cast<int>(gcli_values[g]) - gtli;
+        int32_t* dst = coefficients_out + g * 4;
         if (num_bitplanes <= 0) {
-            continue;  // All four coefficients in this group are zero.
+            dst[0] = dst[1] = dst[2] = dst[3] = 0;
+            continue;
         }
 
-        // Assemble magnitudes bit-plane by bit-plane, MSB first.
-        // Each nibble encodes one bit-plane: bits 3,2,1,0 → coefficients 0,1,2,3.
         int32_t m[4] = {0, 0, 0, 0};
-
-        for (int bp = 0; bp < num_bitplanes; ++bp) {
-            uint32_t nibble = data_reader.read_bits(4);
-
-            m[0] = (m[0] << 1) | ((nibble >> 3) & 1);
-            m[1] = (m[1] << 1) | ((nibble >> 2) & 1);
-            m[2] = (m[2] << 1) | ((nibble >> 1) & 1);
-            m[3] = (m[3] << 1) | ( nibble       & 1);
+        int bp = 0;
+        while (bp + 8 <= num_bitplanes) {
+            uint32_t bits = data_reader.read_bits(32);
+            for (int k = 0; k < 8; ++k) {
+                unpack_one_nibble(m, bits >> 28);
+                bits <<= 4;
+            }
+            bp += 8;
+        }
+        for (; bp < num_bitplanes; ++bp) {
+            unpack_one_nibble(m, data_reader.read_bits(4));
         }
 
-        // Shift in the implicit-zero low bits (truncated at encode time).
-        coefficients_out[g * 4 + 0] = m[0] << gtli;
-        coefficients_out[g * 4 + 1] = m[1] << gtli;
-        coefficients_out[g * 4 + 2] = m[2] << gtli;
-        coefficients_out[g * 4 + 3] = m[3] << gtli;
+        dst[0] = m[0] << gtli;
+        dst[1] = m[1] << gtli;
+        dst[2] = m[2] << gtli;
+        dst[3] = m[3] << gtli;
     }
 }
 
@@ -69,12 +74,81 @@ void apply_sign_bits(
 
     for (int i = 0; i < coefficient_count; ++i) {
         if (coefficients[i] == 0) {
-            continue;  // Zero coefficients consume no sign bit.
+            continue;
         }
         if (sign_reader.read_bits(1) == 1) {
             coefficients[i] = -coefficients[i];
         }
     }
+}
+
+bool unpack_sign_and_dequantize(
+    BitReader& data_reader,
+    BitReader& sign_reader,
+    const uint8_t* gcli_values,
+    int gtli,
+    int num_groups,
+    int32_t* coefficients_out) {
+
+    bool all_zero = true;
+    for (int g = 0; g < num_groups; ++g) {
+        const int gcli = static_cast<int>(gcli_values[g]);
+        const int num_bitplanes = gcli - gtli;
+        int32_t* dst = coefficients_out + g * 4;
+        if (num_bitplanes <= 0) {
+            dst[0] = dst[1] = dst[2] = dst[3] = 0;
+            continue;
+        }
+
+        int32_t m[4] = {0, 0, 0, 0};
+        int bp = 0;
+        while (bp + 8 <= num_bitplanes) {
+            uint32_t bits = data_reader.read_bits(32);
+            for (int k = 0; k < 8; ++k) {
+                unpack_one_nibble(m, bits >> 28);
+                bits <<= 4;
+            }
+            bp += 8;
+        }
+        for (; bp < num_bitplanes; ++bp) {
+            unpack_one_nibble(m, data_reader.read_bits(4));
+        }
+
+        m[0] <<= gtli;
+        m[1] <<= gtli;
+        m[2] <<= gtli;
+        m[3] <<= gtli;
+
+        for (int c = 0; c < 4; ++c) {
+            if (m[c] != 0 && sign_reader.read_bits(1) == 1) {
+                m[c] = -m[c];
+            }
+        }
+
+        if (gcli <= gtli || num_bitplanes < 1 || num_bitplanes > 15) {
+            dst[0] = dst[1] = dst[2] = dst[3] = 0;
+            continue;
+        }
+
+        const uint32_t scale =
+            static_cast<uint32_t>(kMidpointScaleTable[num_bitplanes - 1]);
+        const int shift = 16 - gtli;
+        for (int c = 0; c < 4; ++c) {
+            const int32_t v = m[c];
+            if (v == 0) {
+                dst[c] = 0;
+                continue;
+            }
+            all_zero = false;
+            const uint32_t magnitude =
+                static_cast<uint32_t>(v < 0 ? -v : v) >> gtli;
+            const int32_t reconstructed =
+                static_cast<int32_t>((static_cast<uint64_t>(magnitude) * scale) >> shift)
+                << kW4Shift;
+            dst[c] = (v < 0) ? -reconstructed : reconstructed;
+        }
+    }
+    return all_zero;
 }
 
 }  // namespace nikon_he

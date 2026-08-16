@@ -132,6 +132,22 @@ void compute_subband_layout(int half_pass_W, SubbandConfig out[26], LayoutInfo& 
     std::memcpy(layout_info.passA_hl_offset, passA_hl_offset, sizeof(passA_hl_offset));
     std::memcpy(layout_info.passB_hl_offset, passB_hl_offset, sizeof(passB_hl_offset));
 
+    int sig_blocks_5 = 0;
+    for (int i = 0; i < 6; ++i) {
+        sig_blocks_5 += (ng_5level[i] + 7) / 8;
+    }
+    const int sig_5 = (sig_blocks_5 + 7) / 8;
+    const int sig_ll = (((ng_LL + 7) / 8) + 7) / 8;
+    const int sig_b = ((2 * ((ng_max + 7) / 8)) + 7) / 8;
+    layout_info.lb_sig_bytes[0] = sig_5;
+    layout_info.lb_sig_bytes[1] = sig_5;
+    layout_info.lb_sig_bytes[2] = sig_ll;
+    layout_info.lb_sig_bytes[3] = sig_5;
+    layout_info.lb_sig_bytes[4] = sig_b;
+    layout_info.lb_sig_bytes[5] = sig_b;
+    layout_info.lb_sig_bytes[6] = sig_ll;
+    layout_info.lb_sig_bytes[7] = sig_b;
+
     // --- Compute x24 scatter offsets ---
     // x24 accumulates across LBs. LB region sizes define how much space
     // each LB occupies in the buffer (in x24 units = groups).

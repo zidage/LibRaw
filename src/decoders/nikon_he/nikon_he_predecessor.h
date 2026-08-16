@@ -50,14 +50,26 @@ namespace nikon_he {
 class PrecinctPredecessorState {
 public:
     PrecinctPredecessorState() = default;
+    ~PrecinctPredecessorState() { destroy(); }
+
+    PrecinctPredecessorState(const PrecinctPredecessorState&) = delete;
+    PrecinctPredecessorState& operator=(const PrecinctPredecessorState&) = delete;
 
     // Initialize storage based on sub-band layout.
     // Must be called once before any other methods.
-    // Allocates: sum(ng[i]) uint8_t for GCLI vectors + rotation buffers.
+    // Allocates one slab for GCLI vectors + rotation buffers.
     void init(const SubbandConfig config[26]);
 
     // Free allocated storage.
     void destroy();
+
+    // Zero GCLI state and restart the precinct index. Reuses the slab
+    // from init(). Call this when the same object starts a new tile.
+    void reset_for_new_tile();
+
+    // Writable GCLI store for sub-band `sb`. Decode writes here directly
+    // so the decoder does not allocate a temporary and copy.
+    uint8_t* gcli_buffer(int sb_index);
 
     // Get the "previous band" GCLI values for a sub-band.
     // For sb 12: returns sb 23's GCLIs from the previous precinct.
@@ -94,10 +106,12 @@ private:
     // Number of groups per sub-band (set in init).
     int ng_[26] = {};
 
+    // One slab for all GCLI stores plus the two rotation buffers.
+    uint8_t* slab_ = nullptr;
+
     // Rotation buffers for sb 12 / sb 23 cross-band prediction.
     // rotation_buf_a_ holds previous precinct's sb 23 → current sb 12 prev.
     // rotation_buf_b_ holds current precinct's sb 12 → current sb 23 prev.
-    // At advance: buf_a = buf_b, buf_b = buf_a.
     uint8_t* rotation_buf_a_ = nullptr;  // sb 23 → for sb 12 prev
     uint8_t* rotation_buf_b_ = nullptr;  // sb 12 → for sb 23 prev
 
