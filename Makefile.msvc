@@ -131,7 +131,7 @@ DLL_OBJECTS= object\libraw_datastream.obj object\libraw_c_api.obj \
 
 
 CC=cl.exe
-COPT=/EHsc /MP /MD /I. /DWIN32 /O2 /W0 /nologo $(COPT_OPT) $(CFLAGSG2) $(CFLAGSG3) $(LCMS_DEF) $(JPEG_DEF) $(CFLAGS_RAWSPEED) $(CFLAGS_DNG)
+COPT=/EHsc /MP /MD /openmp /I. /DWIN32 /O2 /W0 /nologo $(COPT_OPT) $(CFLAGSG2) $(CFLAGSG3) $(LCMS_DEF) $(JPEG_DEF) $(CFLAGS_RAWSPEED) $(CFLAGS_DNG)
 
 LINKLIB=$(LIBDLL) $(LDFLAGS_RAWSPEED) $(LDFLAGS_DNG)
 

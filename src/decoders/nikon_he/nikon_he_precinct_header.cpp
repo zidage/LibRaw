@@ -80,7 +80,8 @@ static int compute_lb_sig_bytes(int image_width, int lb) {
 bool parse_precinct_header(const uint8_t* data,
                            size_t data_size,
                            int image_width,
-                           PrecinctSizes& out) {
+                           PrecinctSizes& out,
+                           const int* lb_sig_bytes) {
     if (data_size < kMinHeaderPrefix) {
         return false;
     }
@@ -133,7 +134,8 @@ bool parse_precinct_header(const uint8_t* data,
         out.lb_gcli_bytes[lb] = static_cast<uint32_t>((val >> 15) & 0xFFFFF);
         out.lb_sign_bytes[lb] = static_cast<uint32_t>( val        & 0x7FFF);
         out.lb_sig_bytes [lb] = static_cast<uint32_t>(
-            compute_lb_sig_bytes(image_width, lb));
+            lb_sig_bytes ? lb_sig_bytes[lb]
+                         : compute_lb_sig_bytes(image_width, lb));
 
         cursor += 7;                                 // past mini-header
         out.lb_sig_offset[lb] = static_cast<uint32_t>(cursor);  // sig starts here

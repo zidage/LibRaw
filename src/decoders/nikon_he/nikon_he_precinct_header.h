@@ -89,10 +89,13 @@ inline int compute_f20(int half_pass_width) {
 //
 // Returns true on success, false if the buffer is too short.
 //
+// `lb_sig_bytes` is an optional table of 8 per-LB sig-substream sizes
+// (from LayoutInfo). Pass nullptr to compute them from image_width.
 bool parse_precinct_header(const uint8_t* data,
                            size_t data_size,
                            int image_width,
-                           PrecinctSizes& out);
+                           PrecinctSizes& out,
+                           const int* lb_sig_bytes = nullptr);
 
 }  // namespace nikon_he
 

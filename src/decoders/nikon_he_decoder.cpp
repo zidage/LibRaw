@@ -24,8 +24,7 @@ it under the terms of the one of two licenses as you choose:
 //      nikon_he/nikon_he_decode.h (the rest of nikon_he/*.cpp are
 //      compiled separately via Makefile.am and linked in).
 //   2. Implements LibRaw::nikon_he_load_raw() — reads the precinct
-//      strip from the datastream, dispatches to the decoder, copies
-//      the decoded bayer into raw_image.
+//      strip from the datastream and decodes into raw_image.
 //
 // The decoder takes a contiguous precinct-stream buffer, so we read
 // the entire raw strip upfront. The full strip is small enough (~30 MB
@@ -90,14 +89,14 @@ void LibRaw::nikon_he_load_raw()
     // the generic downward-derivation fallback, so both variants decode.
     // Bp is byte[3] of each precinct's 12-byte prefix.
 
-    // Decode into a scratch bayer buffer, then copy out.
-    std::vector<uint16_t> bayer((size_t)img_w * img_h, 0);
+    // Decode straight into LibRaw's raw_image. The decoder writes every
+    // used Bayer sample; leftover rows stay at the allocator's zero.
     auto result = nikon_he::decode_nikon_he_image(
         precinct_bytes.data(),
         precinct_size,
         img_w, img_h,
         nikon_he::iqx_iqp_lut(),
-        bayer.data());
+        raw_image);
 
     if (!result.success) {
         std::fprintf(stderr,
@@ -109,7 +108,5 @@ void LibRaw::nikon_he_load_raw()
         return;
     }
 
-    std::memcpy(raw_image, bayer.data(),
-                (size_t)img_w * img_h * sizeof(unsigned short));
     maximum = 16383;
 }

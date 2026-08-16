@@ -43,6 +43,7 @@ it under the terms of the one of two licenses as you choose:
 #include "nikon_he_idwt_vertical.h"
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 namespace nikon_he {
 
@@ -73,6 +74,63 @@ struct TileDecodeResult {
     int precincts_decoded;  // should be 18 for a full tile
     bool success;
 };
+
+// Reused per-thread working buffers. Call ensure() once per image width.
+struct TileWorkScratch {
+    std::vector<int32_t> bufA;
+    std::vector<int32_t> bufB;
+    std::vector<int32_t> h_work;
+    std::vector<int32_t> x2_carry;
+    std::vector<int32_t> x3_carry;
+    std::vector<int32_t> tile_buf;
+
+    void ensure(const LayoutInfo* li);
+};
+
+// Per-tile horizontal-IDWT output (18 precincts × 2 passes).
+// Entropy + horizontal IDWT fill this store. Vertical IDWT consumes it.
+struct TileHorizStore {
+    std::vector<int32_t> pass_a;
+    std::vector<int32_t> pass_b;
+    int h_len = 0;
+    int precinct_count = 0;
+
+    void ensure(int store_precincts, int store_h_len);
+
+    int32_t* a(int p) {
+        return pass_a.data() + static_cast<size_t>(p) * h_len;
+    }
+    int32_t* b(int p) {
+        return pass_b.data() + static_cast<size_t>(p) * h_len;
+    }
+    const int32_t* a(int p) const {
+        return pass_a.data() + static_cast<size_t>(p) * h_len;
+    }
+    const int32_t* b(int p) const {
+        return pass_b.data() + static_cast<size_t>(p) * h_len;
+    }
+};
+
+bool decode_tile_entropy_horizontal(
+    const uint8_t* const* precinct_data,
+    const size_t* precinct_sizes,
+    int image_width,
+    const SubbandConfig config[26],
+    PrecinctPredecessorState& pred_state,
+    const uint8_t* predict_lut,
+    TileWorkScratch& scratch,
+    TileHorizStore& store,
+    int precinct_count);
+
+void apply_tile_vertical_idwt(
+    const SubbandConfig config[26],
+    const TileHorizStore& store,
+    int32_t* tile_coeff_buf,
+    int tile_index,
+    int32_t* overflow_carry,
+    bool is_first_tile,
+    bool is_last_tile,
+    TileWorkScratch& scratch);
 
 // Decode one tile.
 //
