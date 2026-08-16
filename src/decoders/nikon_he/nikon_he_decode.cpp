@@ -119,6 +119,56 @@ HeDecodeResult decode_nikon_he_image(
         PrecinctPredecessorState pred_state;
         pred_state.init(config);
 
+#if defined(__APPLE__)
+        // Apple Clang OpenMP allows only one `omp ordered` region in this
+        // loop. Entropy decode stays outside that region; every iteration
+        // still enters it so a failed tile cannot stall later IDWT work.
+#if defined(_OPENMP)
+#pragma omp for ordered schedule(dynamic, 1)
+#endif
+        for (int t = 0; t < loop_n_tiles; t++) {
+            const bool skip_tile = !ok.load(std::memory_order_relaxed);
+            bool decoded = false;
+            int prec_count = 0;
+            const bool is_first = (t == 0);
+            const bool is_last = (t == n_tiles - 1);
+
+            if (!skip_tile) {
+                pred_state.reset_for_new_tile();
+                const int tile_prec_base = t * 16;
+                for (int p = 0; p < kPrecinctsPerTile; ++p) {
+                    const int file_idx = tile_prec_base + p;
+                    if (file_idx >= n_file_precincts || !prec_ptrs[static_cast<size_t>(file_idx)]) {
+                        break;
+                    }
+                    prec_count++;
+                }
+
+                decoded = decode_tile_entropy_horizontal(
+                    prec_ptrs.data() + tile_prec_base,
+                    prec_sizes.data() + tile_prec_base,
+                    image_width, config, pred_state, predict_lut,
+                    scratch, store, prec_count);
+            }
+
+#if defined(_OPENMP)
+#pragma omp ordered
+#endif
+            {
+                if (skip_tile || !decoded || !ok.load(std::memory_order_relaxed)) {
+                    ok.store(false, std::memory_order_relaxed);
+                } else {
+                    apply_tile_vertical_idwt(
+                        config, store, tile_coeff_buf.data(), t,
+                        overflow.data(), is_first, is_last, scratch);
+                    tiles_decoded.fetch_add(1, std::memory_order_relaxed);
+                    total_precincts.fetch_add(prec_count, std::memory_order_relaxed);
+                }
+            }
+        }
+#else
+        // Windows / other OpenMP: keep the original two-region shape so the
+        // fail-fast continue path stays identical to the validated decoder.
 #if defined(_OPENMP)
 #pragma omp for ordered schedule(dynamic, 1)
 #endif
@@ -165,6 +215,7 @@ HeDecodeResult decode_nikon_he_image(
                 }
             }
         }
+#endif
     }
 
     if (!ok.load(std::memory_order_relaxed)) {
