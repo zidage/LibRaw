@@ -1,0 +1,33 @@
+# Local HE decoder scratch files
+__pycache__/
+*.pyc
+_dump/
+_hetest/
+_*.cmd
+_*.ps1
+_*.py
+_*.txt
+he_*.py
+build_msvc.log
+msvc_build.cmd
+samples/he_dump.cpp
+
+# LibRaw local build outputs
+bin/*
+!bin/.keep_me
+bin_gcc/
+object/*
+!object/.keep_me
+object_gcc/
+lib/*
+!lib/Makefile
+
+# Compiler and linker outputs
+*.a
+*.dll
+*.exe
+*.exp
+*.lib
+*.o
+*.obj
+*.pdb

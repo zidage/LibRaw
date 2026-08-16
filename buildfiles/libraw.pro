@@ -31,6 +31,12 @@ SOURCES+= ../src/libraw_datastream.cpp ../src/decoders/canon_600.cpp \
 	../src/decoders/decoders_libraw_dcrdefs.cpp ../src/decoders/pana8.cpp \
 	../src/decompressors/losslessjpeg.cpp ../src/decoders/sonycc.cpp \
 	../src/decoders/sony_arw6.cpp \
+	../src/decoders/nikon_he_decoder.cpp ../src/decoders/nikon_he/nikon_he_bayer.cpp ../src/decoders/nikon_he/nikon_he_bit_reader.cpp \
+	../src/decoders/nikon_he/nikon_he_coefficient_decode.cpp ../src/decoders/nikon_he/nikon_he_decode.cpp ../src/decoders/nikon_he/nikon_he_dequantize.cpp \
+	../src/decoders/nikon_he/nikon_he_gcli_decode.cpp ../src/decoders/nikon_he/nikon_he_gtli_table.cpp ../src/decoders/nikon_he/nikon_he_idwt_horizontal.cpp \
+	../src/decoders/nikon_he/nikon_he_idwt_vertical.cpp ../src/decoders/nikon_he/nikon_he_precinct_decode.cpp ../src/decoders/nikon_he/nikon_he_precinct_header.cpp \
+	../src/decoders/nikon_he/nikon_he_predecessor.cpp ../src/decoders/nikon_he/nikon_he_predict_lut.cpp ../src/decoders/nikon_he/nikon_he_subband_config.cpp \
+	../src/decoders/nikon_he/nikon_he_tile.cpp \
 	../src/decoders/olympus14.cpp \
 	../src/decoders/decoders_libraw.cpp ../src/decoders/dng.cpp \
 	../src/decoders/fp_dng.cpp ../src/decoders/fuji_compressed.cpp \
@@ -70,4 +76,3 @@ SOURCES+= ../src/libraw_datastream.cpp ../src/decoders/canon_600.cpp \
 	../src/write/tiff_writer.cpp ../src/x3f/x3f_parse_process.cpp \
 	../src/x3f/x3f_utils_patched.cpp \
 	../src/libraw_c_api.cpp
-
