@@ -1,5 +1,12 @@
 LibRaw 0.23 (in development; Changelog relative to 0.22)
 
+ == Camera support ==
+
+  * Canon EOS R6 Mark III: ColorData version 66 uses the ColorData12
+    black/white layout inside a 3778-count (ColorData11-sized) block.
+    Parsing it with version-48 offsets reads a tone LUT as SpecularWhiteLevel
+    (147) and clips 14-bit CR3 files to white.
+
  == Raw format support ==
 
   * Nikon High-Efficiency (HE and HE*) RAW format support for Nikon Z
