@@ -118,6 +118,7 @@ void LibRaw::setCanonBodyFeatures(unsigned long long id)
            || (id == CanonID_EOS_R5_C)
            || (id == CanonID_EOS_R6)
            || (id == CanonID_EOS_R6m2)
+           || (id == CanonID_EOS_R6m3)
            || (id == CanonID_EOS_R8)
           )
   {
@@ -1310,16 +1311,34 @@ void LibRaw::parseCanonMakernotes(unsigned tag, unsigned type, unsigned len, uns
 
     case 3973: // R3; ColorDataSubVer: 34
     case 3778: // R6 Mark II, R7, R8, R10, R50, R50 V; ColorDataSubVer: 48
+               // R6 Mark III; ColorDataSubVer: 66 (same 3778-count block, ColorData12 layout)
       imCanon.ColorDataVer = 11;
       AsShot_Auto_MeasuredWB(0x0069);
 
-      fseek(ifp, save1 + ((0x0069+0x0064) << 1), SEEK_SET);
-      Canon_WBpresets(2, 12);
-      fseek(ifp, save1 + ((0x0069+0x00c3) << 1), SEEK_SET);
-      Canon_WBCTpresets(0);
-      offsetChannelBlackLevel2 = save1 + ((0x0069+0x0102) << 1);
-      offsetChannelBlackLevel  = save1 + ((0x0069+0x0213) << 1);
-      offsetWhiteLevels        = save1 + ((0x0069+0x0217) << 1);
+      if (imCanon.ColorDataSubVer == 66)
+      {
+        // Version 66 keeps the ColorData11 length but moves black/white +20
+        // shorts (ColorData12 layout). Version-48 offsets land in a LUT
+        // (SpecularWhiteLevel 147) and clip 14-bit CR3 files to white.
+        imCanon.ColorDataVer = 12;
+        fseek(ifp, save1 + ((0x006d+0x0001) << 1), SEEK_SET);
+        Canon_WBpresets(2, 12);
+        fseek(ifp, save1 + ((0x0069+0x00d7) << 1), SEEK_SET);
+        Canon_WBCTpresets(0);
+        offsetChannelBlackLevel2 = save1 + ((0x0069+0x0116) << 1);
+        offsetChannelBlackLevel  = save1 + ((0x0069+0x0227) << 1);
+        offsetWhiteLevels        = save1 + ((0x0069+0x022b) << 1);
+      }
+      else
+      {
+        fseek(ifp, save1 + ((0x0069+0x0064) << 1), SEEK_SET);
+        Canon_WBpresets(2, 12);
+        fseek(ifp, save1 + ((0x0069+0x00c3) << 1), SEEK_SET);
+        Canon_WBCTpresets(0);
+        offsetChannelBlackLevel2 = save1 + ((0x0069+0x0102) << 1);
+        offsetChannelBlackLevel  = save1 + ((0x0069+0x0213) << 1);
+        offsetWhiteLevels        = save1 + ((0x0069+0x0217) << 1);
+      }
       break;
 
     case 4528: // R1, R5 Mark II; ColorDataSubVer: 64
