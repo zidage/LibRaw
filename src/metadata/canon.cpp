@@ -1310,16 +1310,16 @@ void LibRaw::parseCanonMakernotes(unsigned tag, unsigned type, unsigned len, uns
       break;
 
     case 3973: // R3; ColorDataSubVer: 34
-    case 3778: // R6 Mark II, R7, R8, R10, R50, R50 V; ColorDataSubVer: 48
-               // R6 Mark III; ColorDataSubVer: 66 (same 3778-count block, ColorData12 layout)
+    case 3778: // R6 Mark II, R7, R8, R10, R50; ColorDataSubVer: 48
+               // R50 V, PowerShot V1; ColorDataSubVer: 65
+               // R6 Mark III; ColorDataSubVer: 66
       imCanon.ColorDataVer = 11;
       AsShot_Auto_MeasuredWB(0x0069);
 
-      if (imCanon.ColorDataSubVer == 66)
+      if (imCanon.ColorDataSubVer == 65 || imCanon.ColorDataSubVer == 66)
       {
-        // Version 66 keeps the ColorData11 length but moves black/white +20
-        // shorts (ColorData12 layout). Version-48 offsets land in a LUT
-        // (SpecularWhiteLevel 147) and clip 14-bit CR3 files to white.
+        // Versions 65 and 66 use ColorData12 offsets in a 3778-short block.
+        // ColorData11 offsets read unrelated values as black and white levels.
         imCanon.ColorDataVer = 12;
         fseek(ifp, save1 + ((0x006d+0x0001) << 1), SEEK_SET);
         Canon_WBpresets(2, 12);
