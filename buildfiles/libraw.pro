@@ -39,6 +39,7 @@ SOURCES+= ../src/libraw_datastream.cpp ../src/decoders/canon_600.cpp \
 	../src/decoders/nikon_he/nikon_he_tile.cpp \
 	../src/decoders/olympus14.cpp \
 	../src/decoders/decoders_libraw.cpp ../src/decoders/dng.cpp \
+	../src/decoders/ljpeg_parallel.cpp \
 	../src/decoders/fp_dng.cpp ../src/decoders/fuji_compressed.cpp \
 	../src/decoders/generic.cpp ../src/decoders/kodak_decoders.cpp \
 	../src/decoders/load_mfbacks.cpp ../src/decoders/smal.cpp \

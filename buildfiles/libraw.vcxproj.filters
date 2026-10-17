@@ -133,6 +133,9 @@
     <ClCompile Include="..\src\decoders\dng.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\decoders\ljpeg_parallel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\integration\dngsdk_glue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
