@@ -63,6 +63,14 @@ void LibRaw::lossless_dng_load_raw()
   int ss = shot_select;
   shot_select = libraw_internal_data.unpacker_data.dng_frames[LIM(ss,0,(LIBRAW_IFD_MAXCOUNT*2-1))] & 0xff;
 
+  // Tiles are independent JPEG streams: decode them in parallel
+  // (src/decoders/ljpeg_parallel.cpp), or fall back to the loop below.
+  if (tile_length < INT_MAX && lossless_dng_tiled_load_raw())
+  {
+    shot_select = ss;
+    return;
+  }
+
   while (trow < raw_height)
   {
     checkCancel();
@@ -79,6 +87,12 @@ void LibRaw::lossless_dng_load_raw()
         jwide /= 2;
     try
     {
+      // Whole image in one scan without restart markers: decode it in
+      // parallel (src/decoders/ljpeg_parallel.cpp). On success, clearing
+      // algo skips the serial decoders below; otherwise they run as usual.
+      if (trow == 0 && tcol == 0 &&
+          lossless_dng_single_scan_load_raw(&jh, jwide))
+        jh.algo = 0;
       switch (jh.algo)
       {
       case 0xc1:

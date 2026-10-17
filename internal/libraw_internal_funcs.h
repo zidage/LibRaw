@@ -169,6 +169,8 @@ it under the terms of the one of two licenses as you choose:
 // Adobe DNG
 	void        adobe_copy_pixel (unsigned int row, unsigned int col, ushort **rp);
 	void        lossless_dng_load_raw();
+	int         lossless_dng_single_scan_load_raw(struct jhead *jh, unsigned jwide);
+	int         lossless_dng_tiled_load_raw();
 	void        deflate_dng_load_raw();
 	void        packed_dng_load_raw();
     void        packed_tiled_dng_load_raw();

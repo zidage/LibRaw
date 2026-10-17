@@ -56,6 +56,7 @@ LIB_OBJECTS= object/libraw_datastream.o object/libraw_c_api.o \
   object/canon_600.o  object/decoders_dcraw.o \
   object/decoders_libraw_dcrdefs.o  object/generic.o \
   object/kodak_decoders.o object/dng.o object/smal.o \
+  object/ljpeg_parallel.o \
   object/load_mfbacks.o \
   object/sony.o object/nikon.o object/samsung.o object/cr3_parser.o \
   object/canon.o  object/epson.o object/olympus.o object/leica.o \
@@ -207,6 +208,8 @@ object/decoders_libraw.o: src/decoders/decoders_libraw.cpp
 	${CXX} -c -DLIBRAW_NOTHREADS  ${CFLAGS} -o object/decoders_libraw.o src/decoders/decoders_libraw.cpp
 object/dng.o: src/decoders/dng.cpp
 	${CXX} -c -DLIBRAW_NOTHREADS  ${CFLAGS} -o object/dng.o src/decoders/dng.cpp
+object/ljpeg_parallel.o: src/decoders/ljpeg_parallel.cpp
+	${CXX} -c -DLIBRAW_NOTHREADS  ${CFLAGS} -o object/ljpeg_parallel.o src/decoders/ljpeg_parallel.cpp
 object/fp_dng.o: src/decoders/fp_dng.cpp
 	${CXX} -c -DLIBRAW_NOTHREADS  ${CFLAGS} -o object/fp_dng.o src/decoders/fp_dng.cpp
 object/fuji_compressed.o: src/decoders/fuji_compressed.cpp

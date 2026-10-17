@@ -65,6 +65,7 @@ LIB_OBJECTS= object\libraw_datastream_st.obj object\libraw_c_api_st.obj \
   object\canon_600_st.obj  object\decoders_dcraw_st.obj \
   object\decoders_libraw_dcrdefs_st.obj  object\generic_st.obj \
   object\kodak_decoders_st.obj object\dng_st.obj object\smal_st.obj \
+  object\ljpeg_parallel_st.obj \
   object\load_mfbacks_st.obj \
   object\sony_st.obj object\nikon_st.obj object\samsung_st.obj object\cr3_parser_st.obj \
   object\canon_st.obj  object\epson_st.obj object\olympus_st.obj object\leica_st.obj \
@@ -110,6 +111,7 @@ DLL_OBJECTS= object\libraw_datastream.obj object\libraw_c_api.obj \
   object\canon_600.obj  object\decoders_dcraw.obj \
   object\decoders_libraw_dcrdefs.obj  object\generic.obj \
   object\kodak_decoders.obj object\dng.obj object\smal.obj \
+  object\ljpeg_parallel.obj \
   object\load_mfbacks.obj \
   object\sony.obj object\nikon.obj object\samsung.obj \
   object\cr3_parser.obj object\canon.obj  object\epson.obj \
@@ -357,6 +359,12 @@ object\dng_st.obj: src\decoders\dng.cpp
 
 object\dng.obj: src\decoders\dng.cpp
 	$(CC) $(COPT) /DLIBRAW_BUILDLIB /Fo"object\\dng.obj" /c src\decoders\dng.cpp
+
+object\ljpeg_parallel_st.obj: src\decoders\ljpeg_parallel.cpp
+	$(CC) $(COPT) /DLIBRAW_NODLL /DLIBRAW_BUILDLIB /Fo"object\\ljpeg_parallel_st.obj" /c src\decoders\ljpeg_parallel.cpp
+
+object\ljpeg_parallel.obj: src\decoders\ljpeg_parallel.cpp
+	$(CC) $(COPT) /DLIBRAW_BUILDLIB /Fo"object\\ljpeg_parallel.obj" /c src\decoders\ljpeg_parallel.cpp
 
 object\fp_dng_st.obj: src\decoders\fp_dng.cpp
 	$(CC) $(COPT) /DLIBRAW_NODLL /DLIBRAW_BUILDLIB /Fo"object\\fp_dng_st.obj" /c src\decoders\fp_dng.cpp

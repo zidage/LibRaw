@@ -179,6 +179,7 @@
     <ClCompile Include="..\src\decoders\decoders_libraw_dcrdefs.cpp" />
     <ClCompile Include="..\src\demosaic\dht_demosaic.cpp" />
     <ClCompile Include="..\src\decoders\dng.cpp" />
+    <ClCompile Include="..\src\decoders\ljpeg_parallel.cpp" />
     <ClCompile Include="..\src\integration\dngsdk_glue.cpp" />
     <ClCompile Include="..\src\metadata\epson.cpp" />
     <ClCompile Include="..\src\metadata\exif_gps.cpp" />

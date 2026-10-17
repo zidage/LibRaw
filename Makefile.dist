@@ -65,6 +65,7 @@ LIB_OBJECTS= object/libraw_datastream.o object/libraw_c_api.o \
   object/canon_600.o  object/decoders_dcraw.o \
   object/decoders_libraw_dcrdefs.o  object/generic.o \
   object/kodak_decoders.o object/dng.o object/smal.o \
+  object/ljpeg_parallel.o \
   object/load_mfbacks.o \
   object/sony.o object/nikon.o object/samsung.o object/cr3_parser.o \
   object/canon.o  object/epson.o object/olympus.o object/leica.o \
@@ -108,6 +109,7 @@ LIB_MT_OBJECTS= object/libraw_datastream.mt.o object/libraw_c_api.mt.o \
   object/canon_600.mt.o  object/decoders_dcraw.mt.o \
   object/decoders_libraw_dcrdefs.mt.o  object/generic.mt.o \
   object/kodak_decoders.mt.o object/dng.mt.o object/smal.mt.o \
+  object/ljpeg_parallel.mt.o \
   object/load_mfbacks.mt.o \
   object/sony.mt.o object/nikon.mt.o object/samsung.mt.o \
   object/cr3_parser.mt.o object/canon.mt.o  object/epson.mt.o \
@@ -327,6 +329,10 @@ object/dng.o: src/decoders/dng.cpp
 	${CXX} -c -DLIBRAW_NOTHREADS  ${CFLAGS} -o object/dng.o src/decoders/dng.cpp
 object/dng.mt.o: src/decoders/dng.cpp
 	${CXX} -c ${CFLAGS} -o object/dng.mt.o src/decoders/dng.cpp
+object/ljpeg_parallel.o: src/decoders/ljpeg_parallel.cpp
+	${CXX} -c -DLIBRAW_NOTHREADS  ${CFLAGS} -o object/ljpeg_parallel.o src/decoders/ljpeg_parallel.cpp
+object/ljpeg_parallel.mt.o: src/decoders/ljpeg_parallel.cpp
+	${CXX} -c ${CFLAGS} -o object/ljpeg_parallel.mt.o src/decoders/ljpeg_parallel.cpp
 object/fp_dng.o: src/decoders/fp_dng.cpp
 	${CXX} -c -DLIBRAW_NOTHREADS  ${CFLAGS} -o object/fp_dng.o src/decoders/fp_dng.cpp
 object/fp_dng.mt.o: src/decoders/fp_dng.cpp
